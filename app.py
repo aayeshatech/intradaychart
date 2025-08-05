@@ -55,11 +55,12 @@ stock_data = {
     ]
 }
 
-# Verify all arrays have the same length
-array_lengths = {key: len(value) for key, value in stock_data.items()}
-if len(set(array_lengths.values())) > 1:
-    st.error(f"Arrays have different lengths: {array_lengths}")
-    st.stop()
+# Find the minimum length among all arrays
+min_length = min(len(values) for values in stock_data.values())
+
+# Truncate all arrays to the minimum length
+for key in stock_data:
+    stock_data[key] = stock_data[key][:min_length]
 
 # Create the DataFrame
 STOCK_DATABASE = pd.DataFrame(stock_data)
