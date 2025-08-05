@@ -807,18 +807,34 @@ def analyze_aspects():
     fig, ax = plt.subplots(figsize=(14, 8))
     plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.3)  # Adjust margins
     
-    # Extract numerical values from price change strings
+    # Extract numerical values from price change strings - using a more robust method
     price_changes = []
     for change in df_aspects['Typical Price Change']:
-        # Extract the percentage value
-        if change.startswith('+'):
-            num = float(change[1:].replace('%', ''))
-        elif change.startswith('-'):
-            num = -float(change[1:].replace('%', ''))
-        elif change.startswith('±'):
-            num = float(change[1:].replace('%', ''))
+        # Remove % sign
+        clean_change = change.replace('%', '')
+        
+        # Handle special cases with ± or ranges
+        if '±' in clean_change:
+            # Take the first number in the range
+            num_str = clean_change.replace('±', '').split('-')[0]
+            try:
+                num = float(num_str)
+            except:
+                num = 0
+        elif '-' in clean_change and not clean_change.startswith('-'):
+            # It's a range like "1-2", take the first number
+            num_str = clean_change.split('-')[0]
+            try:
+                num = float(num_str)
+            except:
+                num = 0
         else:
-            num = 0
+            # Regular positive or negative number
+            try:
+                num = float(clean_change)
+            except:
+                num = 0
+                
         price_changes.append(num)
     
     # Create color map based on impact
@@ -1023,18 +1039,20 @@ def main():
         
         st.pyplot(fig)
         
-        # Display filtered stocks
+        # Display filtered stocks with color highlighting
         st.subheader('📈 Bullish Stocks (Consider Buying)')
         if not filtered_stocks['bullish'].empty:
             bullish_df = filtered_stocks['bullish'][['Symbol', 'Sector', 'MarketCap', 'Impact Score']]
-            st.dataframe(bullish_df)
+            # Apply green highlighting to bullish stocks
+            st.dataframe(bullish_df.style.applymap(lambda x: 'color: green' if isinstance(x, str) else '', subset=['Symbol']))
         else:
             st.info("No bullish stocks identified for today's aspects.")
         
         st.subheader('📉 Bearish Stocks (Consider Selling or Avoiding)')
         if not filtered_stocks['bearish'].empty:
             bearish_df = filtered_stocks['bearish'][['Symbol', 'Sector', 'MarketCap', 'Impact Score']]
-            st.dataframe(bearish_df)
+            # Apply red highlighting to bearish stocks
+            st.dataframe(bearish_df.style.applymap(lambda x: 'color: red' if isinstance(x, str) else '', subset=['Symbol']))
         else:
             st.info("No bearish stocks identified for today's aspects.")
         
