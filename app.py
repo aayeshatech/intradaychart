@@ -25,15 +25,15 @@ except OSError:
 stock_data = {
     'Symbol': [
         'TCS', 'ICICIBANK', 'MARUTI', 'DLF', 'NESTLEIND', 
-        'RELIANCE', 'SBI'
+        'RELIANCE', 'SBI', 'SUNPHARMA', 'DRREDDY'
     ],
     'Sector': [
         'Technology', 'Banking', 'Automotive', 'Realty', 'FMCG',
-        'Energy', 'PSUs'
+        'Energy', 'PSUs', 'Pharma', 'Pharma'
     ],
     'MarketCap': [
         'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large'
+        'Large', 'Large', 'Large', 'Large'
     ]
 }
 
@@ -283,10 +283,8 @@ def create_summary_table(aspects):
 # --- FILTER STOCKS BASED ON ASTROLOGICAL ASPECTS ---
 def filter_stocks_by_aspects(aspects, stock_database):
     """Filter stocks based on today's astrological aspects"""
-    # Initialize sector impacts
-    sector_impacts = {}
-    for sector in stock_database['Sector'].unique():
-        sector_impacts[sector] = 0
+    # Initialize sector impacts with all sectors from the database
+    sector_impacts = {sector: 0 for sector in stock_database['Sector'].unique()}
     
     # Calculate sector impacts based on aspects
     for aspect in aspects:
@@ -296,6 +294,10 @@ def filter_stocks_by_aspects(aspects, stock_database):
         # Determine impact on each sector
         for sector, planets in SECTOR_PLANETARY_INFLUENCES.items():
             if planet1 in planets or planet2 in planets:
+                # Check if the sector exists in our impacts dictionary
+                if sector not in sector_impacts:
+                    sector_impacts[sector] = 0
+                
                 aspect_impact = ASPECT_SECTOR_IMPACTS[aspect["aspect_type"]].get(sector, "Neutral")
                 
                 if aspect_impact == "Positive":
