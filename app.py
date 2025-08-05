@@ -20,6 +20,181 @@ except OSError:
         plt.style.use('default')
         sns.set_style("darkgrid")
 
+# --- STOCK DATABASE ---
+# Sample stock list with sectors (in a real app, this would come from a database or API)
+STOCK_DATABASE = pd.DataFrame({
+    'Symbol': [
+        'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'HINDUNILVR', 'ICICIBANK', 'SBIN', 'BHARTIARTL',
+        'KOTAKBANK', 'AXISBANK', 'ITC', 'ASIANPAINT', 'DMART', 'BAJFINANCE', 'MARUTI',
+        'SUNPHARMA', 'TITAN', 'ULTRACEMCO', 'WIPRO', 'TECHM', 'NESTLEIND', 'HCLTECH',
+        'ADANIPORTS', 'POWERGRID', 'NTPC', 'COALINDIA', 'ONGC', 'BPCL', 'IOC',
+        'JSWSTEEL', 'TATASTEEL', 'HINDALCO', 'VEDL', 'DRREDDY', 'CIPLA', 'DIVISLAB',
+        'EICHERMOT', 'M&M', 'HEROMOTOCO', 'BAJAJ_AUTO', 'TATAMOTORS', 'SHREECEM',
+        'GRASIM', 'UPL', 'BRITANNIA', 'DABUR', 'GAIL', 'INDUSINDBK', 'BAJAJFINSV',
+        'LT', 'SBILIFE', 'HDFCLIFE', 'ICICIGI', 'TATACONSUM', 'HDFCAMC'
+    ],
+    'Sector': [
+        'Energy', 'Technology', 'Banking', 'Technology', 'FMCG', 'Banking', 'Banking', 'Telecom',
+        'Banking', 'Banking', 'FMCG', 'Paints', 'Retail', 'Finance', 'Automotive',
+        'Pharma', 'Jewelry', 'Cement', 'Technology', 'Technology', 'FMCG', 'Technology',
+        'Infrastructure', 'Utilities', 'Utilities', 'Mining', 'Energy', 'Energy', 'Energy',
+        'Metals', 'Metals', 'Metals', 'Metals', 'Pharma', 'Pharma', 'Pharma',
+        'Automotive', 'Automotive', 'Automotive', 'Automotive', 'Automotive', 'Cement',
+        'Textiles', 'Agrochemicals', 'FMCG', 'FMCG', 'Energy', 'Banking', 'Finance',
+        'Infrastructure', 'Insurance', 'Insurance', 'Insurance', 'FMCG', 'Asset Management'
+    ],
+    'MarketCap': [
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large'
+    ]
+})
+
+# --- SECTOR-PLANETARY MAPPINGS ---
+# Define which sectors are influenced by which planets
+SECTOR_PLANETARY_INFLUENCES = {
+    'Technology': ['Mercury', 'Uranus'],
+    'Banking': ['Jupiter', 'Pluto'],
+    'FMCG': ['Venus', 'Moon'],
+    'Energy': ['Mars', 'Pluto'],
+    'Automotive': ['Mars', 'Mercury'],
+    'Pharma': ['Neptune', 'Jupiter'],
+    'Metals': ['Saturn', 'Pluto'],
+    'Infrastructure': ['Saturn', 'Mars'],
+    'Utilities': ['Saturn', 'Neptune'],
+    'Mining': ['Pluto', 'Saturn'],
+    'Insurance': ['Jupiter', 'Neptune'],
+    'Finance': ['Jupiter', 'Venus'],
+    'Paints': ['Venus'],
+    'Retail': ['Mercury', 'Venus'],
+    'Jewelry': ['Venus', 'Sun'],
+    'Cement': ['Saturn'],
+    'Textiles': ['Mercury', 'Neptune'],
+    'Agrochemicals': ['Pluto', 'Jupiter'],
+    'Telecom': ['Mercury', 'Uranus'],
+    'Asset Management': ['Jupiter', 'Pluto']
+}
+
+# --- ASPECT-SECTOR IMPACT ---
+# Define how different aspects affect different sectors
+ASPECT_SECTOR_IMPACTS = {
+    'Conjunction': {
+        'Technology': 'Positive',
+        'Banking': 'Positive',
+        'FMCG': 'Positive',
+        'Energy': 'Positive',
+        'Automotive': 'Positive',
+        'Pharma': 'Positive',
+        'Metals': 'Positive',
+        'Infrastructure': 'Positive',
+        'Utilities': 'Neutral',
+        'Mining': 'Positive',
+        'Insurance': 'Positive',
+        'Finance': 'Positive',
+        'Paints': 'Positive',
+        'Retail': 'Positive',
+        'Jewelry': 'Positive',
+        'Cement': 'Neutral',
+        'Textiles': 'Positive',
+        'Agrochemicals': 'Positive',
+        'Telecom': 'Positive',
+        'Asset Management': 'Positive'
+    },
+    'Trine': {
+        'Technology': 'Positive',
+        'Banking': 'Positive',
+        'FMCG': 'Positive',
+        'Energy': 'Positive',
+        'Automotive': 'Positive',
+        'Pharma': 'Positive',
+        'Metals': 'Positive',
+        'Infrastructure': 'Positive',
+        'Utilities': 'Positive',
+        'Mining': 'Positive',
+        'Insurance': 'Positive',
+        'Finance': 'Positive',
+        'Paints': 'Positive',
+        'Retail': 'Positive',
+        'Jewelry': 'Positive',
+        'Cement': 'Positive',
+        'Textiles': 'Positive',
+        'Agrochemicals': 'Positive',
+        'Telecom': 'Positive',
+        'Asset Management': 'Positive'
+    },
+    'Sextile': {
+        'Technology': 'Positive',
+        'Banking': 'Positive',
+        'FMCG': 'Positive',
+        'Energy': 'Positive',
+        'Automotive': 'Positive',
+        'Pharma': 'Positive',
+        'Metals': 'Positive',
+        'Infrastructure': 'Positive',
+        'Utilities': 'Positive',
+        'Mining': 'Positive',
+        'Insurance': 'Positive',
+        'Finance': 'Positive',
+        'Paints': 'Positive',
+        'Retail': 'Positive',
+        'Jewelry': 'Positive',
+        'Cement': 'Positive',
+        'Textiles': 'Positive',
+        'Agrochemicals': 'Positive',
+        'Telecom': 'Positive',
+        'Asset Management': 'Positive'
+    },
+    'Opposition': {
+        'Technology': 'Negative',
+        'Banking': 'Negative',
+        'FMCG': 'Negative',
+        'Energy': 'Negative',
+        'Automotive': 'Negative',
+        'Pharma': 'Negative',
+        'Metals': 'Negative',
+        'Infrastructure': 'Negative',
+        'Utilities': 'Negative',
+        'Mining': 'Negative',
+        'Insurance': 'Negative',
+        'Finance': 'Negative',
+        'Paints': 'Negative',
+        'Retail': 'Negative',
+        'Jewelry': 'Negative',
+        'Cement': 'Negative',
+        'Textiles': 'Negative',
+        'Agrochemicals': 'Negative',
+        'Telecom': 'Negative',
+        'Asset Management': 'Negative'
+    },
+    'Square': {
+        'Technology': 'Negative',
+        'Banking': 'Negative',
+        'FMCG': 'Negative',
+        'Energy': 'Negative',
+        'Automotive': 'Negative',
+        'Pharma': 'Negative',
+        'Metals': 'Negative',
+        'Infrastructure': 'Negative',
+        'Utilities': 'Negative',
+        'Mining': 'Negative',
+        'Insurance': 'Negative',
+        'Finance': 'Negative',
+        'Paints': 'Negative',
+        'Retail': 'Negative',
+        'Jewelry': 'Negative',
+        'Cement': 'Negative',
+        'Textiles': 'Negative',
+        'Agrochemicals': 'Negative',
+        'Telecom': 'Negative',
+        'Asset Management': 'Negative'
+    }
+}
+
 # --- PLANETARY POSITION VISUALIZATION ---
 def draw_planetary_wheel(ax, input_date, size=0.3):
     """Draw a simplified astrological wheel showing planetary positions"""
@@ -109,6 +284,84 @@ def draw_planetary_wheel(ax, input_date, size=0.3):
     ax.set_aspect('equal')
     ax.axis('off')
     ax.set_title(f'Planetary Positions\n{date_obj.strftime("%b %d, %Y")}', fontsize=8)
+
+# --- GENERATE TODAY'S ASTROLOGICAL ASPECTS ---
+def generate_todays_aspects():
+    """Generate astrological aspects for today"""
+    today = datetime.now().date()
+    
+    # This is a simplified simulation - in a real app, you would use an ephemeris
+    # to calculate actual planetary positions and aspects
+    
+    # Base aspects (would be calculated based on actual planetary positions)
+    base_aspects = [
+        {"planets": "Mercury-Jupiter", "aspect_type": "Square", "impact": -0.7, "type": "bearish"},
+        {"planets": "Venus-Saturn", "aspect_type": "Opposition", "impact": -0.8, "type": "bearish"},
+        {"planets": "Moon-Neptune", "aspect_type": "Trine", "impact": 0.6, "type": "bullish"},
+        {"planets": "Mars-Uranus", "aspect_type": "Conjunction", "impact": 0.9, "type": "bullish"},
+        {"planets": "Sun-Pluto", "aspect_type": "Sextile", "impact": 0.5, "type": "bullish"}
+    ]
+    
+    # Create aspects for today
+    aspects = []
+    for aspect in base_aspects:
+        aspects.append({
+            "planets": aspect["planets"],
+            "aspect_type": aspect["aspect_type"],
+            "impact": aspect["impact"],
+            "type": aspect["type"]
+        })
+    
+    return aspects
+
+# --- FILTER STOCKS BASED ON ASTROLOGICAL ASPECTS ---
+def filter_stocks_by_aspects(aspects, stock_database):
+    """Filter stocks based on today's astrological aspects"""
+    # Initialize sector impacts
+    sector_impacts = {}
+    for sector in stock_database['Sector'].unique():
+        sector_impacts[sector] = 0
+    
+    # Calculate sector impacts based on aspects
+    for aspect in aspects:
+        # Extract planets involved in the aspect
+        planet1, planet2 = aspect["planets"].split("-")
+        
+        # Determine impact on each sector
+        for sector, planets in SECTOR_PLANETARY_INFLUENCES.items():
+            if planet1 in planets or planet2 in planets:
+                aspect_impact = ASPECT_SECTOR_IMPACTS[aspect["aspect_type"]].get(sector, "Neutral")
+                
+                if aspect_impact == "Positive":
+                    sector_impacts[sector] += abs(aspect["impact"])
+                elif aspect_impact == "Negative":
+                    sector_impacts[sector] -= abs(aspect["impact"])
+    
+    # Classify sectors as bullish or bearish
+    bullish_sectors = [sector for sector, impact in sector_impacts.items() if impact > 0]
+    bearish_sectors = [sector for sector, impact in sector_impacts.items() if impact < 0]
+    neutral_sectors = [sector for sector, impact in sector_impacts.items() if impact == 0]
+    
+    # Filter stocks
+    bullish_stocks = stock_database[stock_database['Sector'].isin(bullish_sectors)].copy()
+    bearish_stocks = stock_database[stock_database['Sector'].isin(bearish_sectors)].copy()
+    neutral_stocks = stock_database[stock_database['Sector'].isin(neutral_sectors)].copy()
+    
+    # Add impact scores
+    bullish_stocks['Impact Score'] = bullish_stocks['Sector'].apply(lambda x: sector_impacts[x])
+    bearish_stocks['Impact Score'] = bearish_stocks['Sector'].apply(lambda x: abs(sector_impacts[x]))
+    neutral_stocks['Impact Score'] = 0
+    
+    # Sort by impact score
+    bullish_stocks = bullish_stocks.sort_values('Impact Score', ascending=False)
+    bearish_stocks = bearish_stocks.sort_values('Impact Score', ascending=False)
+    
+    return {
+        'bullish': bullish_stocks,
+        'bearish': bearish_stocks,
+        'neutral': neutral_stocks,
+        'sector_impacts': sector_impacts
+    }
 
 # --- GENERATE ASTROLOGICAL EVENTS ---
 def generate_astrological_events(input_date, event_type='intraday'):
@@ -608,7 +861,7 @@ def main():
     # Chart type selection
     chart_type = st.sidebar.selectbox(
         'Choose a chart to generate:',
-        ['Intraday Chart', 'Monthly Chart', 'Aspect Analysis']
+        ['Intraday Chart', 'Monthly Chart', 'Aspect Analysis', 'Stock Filter']
     )
     
     if chart_type == 'Intraday Chart':
@@ -708,6 +961,106 @@ def main():
         - **Mars**: Action, energy, conflict
         - **Moon**: Emotions, sentiment, cycles
         """)
+        
+    elif chart_type == 'Stock Filter':
+        st.header('🔍 Stock Filter Based on Today\'s Astrological Aspects')
+        st.write('Filter stocks based on their expected performance according to today\'s planetary transits and aspects.')
+        
+        # Generate today's aspects
+        today = datetime.now().date()
+        st.subheader(f'Today\'s Astrological Aspects - {today.strftime("%B %d, %Y")}')
+        
+        aspects = generate_todays_aspects()
+        
+        # Display today's aspects
+        aspects_df = pd.DataFrame(aspects)
+        aspects_df = aspects_df[['planets', 'aspect_type', 'type', 'impact']]
+        aspects_df.columns = ['Planets', 'Aspect Type', 'Market Sentiment', 'Impact Strength']
+        st.dataframe(aspects_df)
+        
+        # Filter stocks based on aspects
+        filtered_stocks = filter_stocks_by_aspects(aspects, STOCK_DATABASE)
+        
+        # Display sector impacts
+        st.subheader('📊 Sector Impact Analysis')
+        sector_impacts_df = pd.DataFrame({
+            'Sector': list(filtered_stocks['sector_impacts'].keys()),
+            'Impact Score': list(filtered_stocks['sector_impacts'].values())
+        })
+        sector_impacts_df['Sentiment'] = sector_impacts_df['Impact Score'].apply(
+            lambda x: 'Bullish' if x > 0 else ('Bearish' if x < 0 else 'Neutral')
+        )
+        sector_impacts_df = sector_impacts_df.sort_values('Impact Score', ascending=False)
+        
+        # Create a bar chart of sector impacts
+        fig, ax = plt.subplots(figsize=(12, 6))
+        colors = ['green' if x > 0 else 'red' if x < 0 else 'gray' for x in sector_impacts_df['Impact Score']]
+        bars = ax.bar(sector_impacts_df['Sector'], sector_impacts_df['Impact Score'], color=colors, alpha=0.7)
+        
+        ax.set_title('Sector Impact Scores Based on Today\'s Astrological Aspects', fontsize=14)
+        ax.set_ylabel('Impact Score', fontsize=12)
+        ax.set_xlabel('Sector', fontsize=12)
+        plt.xticks(rotation=45, ha='right')
+        
+        # Add value labels on bars
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height:.2f}',
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3 if height > 0 else -15),
+                        textcoords="offset points",
+                        ha='center', va='bottom' if height > 0 else 'top')
+        
+        st.pyplot(fig)
+        
+        # Display filtered stocks
+        st.subheader('📈 Bullish Stocks (Consider Buying)')
+        if not filtered_stocks['bullish'].empty:
+            bullish_df = filtered_stocks['bullish'][['Symbol', 'Sector', 'MarketCap', 'Impact Score']]
+            st.dataframe(bullish_df)
+        else:
+            st.info("No bullish stocks identified for today's aspects.")
+        
+        st.subheader('📉 Bearish Stocks (Consider Selling or Avoiding)')
+        if not filtered_stocks['bearish'].empty:
+            bearish_df = filtered_stocks['bearish'][['Symbol', 'Sector', 'MarketCap', 'Impact Score']]
+            st.dataframe(bearish_df)
+        else:
+            st.info("No bearish stocks identified for today's aspects.")
+        
+        st.subheader('➖ Neutral Stocks (Hold or Monitor)')
+        if not filtered_stocks['neutral'].empty:
+            neutral_df = filtered_stocks['neutral'][['Symbol', 'Sector', 'MarketCap', 'Impact Score']]
+            st.dataframe(neutral_df)
+        else:
+            st.info("No neutral stocks identified for today's aspects.")
+        
+        # Additional information
+        st.subheader('🔮 Trading Strategy Based on Today\'s Aspects')
+        
+        # Get top bullish and bearish sectors
+        top_bullish_sectors = sector_impacts_df[sector_impacts_df['Sentiment'] == 'Bullish'].head(3)['Sector'].tolist()
+        top_bearish_sectors = sector_impacts_df[sector_impacts_df['Sentiment'] == 'Bearish'].head(3)['Sector'].tolist()
+        
+        strategy_info = f"""
+        **Today's Market Outlook:** {'Bullish' if sum(filtered_stocks['sector_impacts'].values()) > 0 else 'Bearish'}
+        
+        **Top Bullish Sectors:** {', '.join(top_bullish_sectors) if top_bullish_sectors else 'None'}
+        
+        **Top Bearish Sectors:** {', '.join(top_bearish_sectors) if top_bearish_sectors else 'None'}
+        
+        **Recommended Actions:**
+        - **Buy**: Stocks from bullish sectors with high impact scores
+        - **Sell/Avoid**: Stocks from bearish sectors with high impact scores
+        - **Hold**: Stocks from neutral sectors or with low impact scores
+        
+        **Key Astrological Events Today:**
+        """
+        
+        for aspect in aspects:
+            strategy_info += f"- {aspect['planets']} {aspect['aspect_type']}: {aspect['type'].capitalize()} with impact strength {aspect['impact']}\n"
+        
+        st.info(strategy_info)
 
 if __name__ == "__main__":
     main()
