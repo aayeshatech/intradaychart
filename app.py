@@ -6,9 +6,15 @@ import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 import seaborn as sns
 
-# Set compatible style
-plt.style.use('seaborn-darkgrid')
-sns.set_palette("husl")
+# Set compatible style with error handling
+try:
+    plt.style.use('seaborn-v0_8-darkgrid')
+except OSError:
+    try:
+        plt.style.use('seaborn-darkgrid')
+    except OSError:
+        plt.style.use('default')
+        sns.set_style("darkgrid")
 
 # --- INTRADAY CHART FOR AUGUST 5, 2025 ---
 def generate_intraday_chart():
