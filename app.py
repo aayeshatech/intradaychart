@@ -4,11 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta, date as date_class
+import calendar
 import seaborn as sns
 from matplotlib.patches import Circle, Wedge
 from matplotlib.collections import PatchCollection
 import matplotlib.patches as mpatches
-import calendar
 
 # Set compatible style with error handling
 try:
@@ -21,187 +21,102 @@ except OSError:
         sns.set_style("darkgrid")
 
 # --- STOCK DATABASE ---
-# Create a more robust stock database with consistent array lengths
+# Create a stock database with stocks mentioned in the astrological table
 stock_data = {
     'Symbol': [
-        'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'HINDUNILVR', 'ICICIBANK', 'SBIN', 'BHARTIARTL',
-        'KOTAKBANK', 'AXISBANK', 'ITC', 'ASIANPAINT', 'DMART', 'BAJFINANCE', 'MARUTI',
-        'SUNPHARMA', 'TITAN', 'ULTRACEMCO', 'WIPRO', 'TECHM', 'NESTLEIND', 'HCLTECH',
-        'ADANIPORTS', 'POWERGRID', 'NTPC', 'COALINDIA', 'ONGC', 'BPCL', 'IOC',
-        'JSWSTEEL', 'TATASTEEL', 'HINDALCO', 'VEDL', 'DRREDDY', 'CIPLA', 'DIVISLAB',
-        'EICHERMOT', 'M&M', 'HEROMOTOCO', 'BAJAJ_AUTO', 'TATAMOTORS', 'SHREECEM',
-        'GRASIM', 'UPL', 'BRITANNIA', 'DABUR', 'GAIL', 'INDUSINDBK', 'BAJAJFINSV',
-        'LT', 'SBILIFE', 'HDFCLIFE', 'ICICIGI', 'TATACONSUM', 'HDFCAMC'
+        'TCS', 'ICICIBANK', 'MARUTI', 'DLF', 'NESTLEIND', 
+        'RELIANCE', 'SBI'
     ],
     'Sector': [
-        'Energy', 'Technology', 'Banking', 'Technology', 'FMCG', 'Banking', 'Banking', 'Telecom',
-        'Banking', 'Banking', 'FMCG', 'Paints', 'Retail', 'Finance', 'Automotive',
-        'Pharma', 'Jewelry', 'Cement', 'Technology', 'Technology', 'FMCG', 'Technology',
-        'Infrastructure', 'Utilities', 'Utilities', 'Mining', 'Energy', 'Energy', 'Energy',
-        'Metals', 'Metals', 'Metals', 'Metals', 'Pharma', 'Pharma', 'Pharma',
-        'Automotive', 'Automotive', 'Automotive', 'Automotive', 'Automotive', 'Cement',
-        'Textiles', 'Agrochemicals', 'FMCG', 'FMCG', 'Energy', 'Banking', 'Finance',
-        'Infrastructure', 'Insurance', 'Insurance', 'Insurance', 'FMCG', 'Asset Management'
+        'Technology', 'Banking', 'Automotive', 'Realty', 'FMCG',
+        'Energy', 'PSUs'
     ],
     'MarketCap': [
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large'
+        'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large'
     ]
 }
-
-# Find the minimum length among all arrays
-min_length = min(len(values) for values in stock_data.values())
-
-# Truncate all arrays to the minimum length
-for key in stock_data:
-    stock_data[key] = stock_data[key][:min_length]
 
 # Create the DataFrame
 STOCK_DATABASE = pd.DataFrame(stock_data)
 
 # --- SECTOR-PLANETARY MAPPINGS ---
-# Define which sectors are influenced by which planets
+# Define which sectors are influenced by which planets based on the table
 SECTOR_PLANETARY_INFLUENCES = {
-    'Technology': ['Mercury', 'Uranus'],
-    'Banking': ['Jupiter', 'Pluto'],
-    'FMCG': ['Venus', 'Moon'],
-    'Energy': ['Mars', 'Pluto'],
-    'Automotive': ['Mars', 'Mercury'],
-    'Pharma': ['Neptune', 'Jupiter'],
-    'Metals': ['Saturn', 'Pluto'],
-    'Infrastructure': ['Saturn', 'Mars'],
-    'Utilities': ['Saturn', 'Neptune'],
-    'Mining': ['Pluto', 'Saturn'],
-    'Insurance': ['Jupiter', 'Neptune'],
-    'Finance': ['Jupiter', 'Venus'],
-    'Paints': ['Venus'],
-    'Retail': ['Mercury', 'Venus'],
-    'Jewelry': ['Venus', 'Sun'],
-    'Cement': ['Saturn'],
-    'Textiles': ['Mercury', 'Neptune'],
-    'Agrochemicals': ['Pluto', 'Jupiter'],
-    'Telecom': ['Mercury', 'Uranus'],
-    'Asset Management': ['Jupiter', 'Pluto']
+    'Technology': ['Mercury'],  # Based on Mercury-Jupiter aspect affecting IT
+    'Banking': ['Jupiter', 'Saturn'],  # Based on Mercury-Jupiter and Venus-Saturn aspects
+    'FMCG': ['Moon'],  # Based on Moon-Neptune aspect
+    'Pharma': ['Neptune'],  # Based on Moon-Neptune aspect
+    'Energy': ['Mars'],  # Based on Mars-Uranus aspect
+    'Automotive': ['Saturn'],  # Based on Venus-Saturn aspect
+    'Realty': ['Saturn'],  # Based on Venus-Saturn aspect
+    'PSUs': ['Pluto'],  # Based on Sun-Pluto aspect
+    'Midcaps': ['Uranus'],  # Based on Mars-Uranus aspect
+    'Smallcaps': ['Pluto']  # Based on Sun-Pluto aspect
 }
 
 # --- ASPECT-SECTOR IMPACT ---
-# Define how different aspects affect different sectors
+# Define how different aspects affect different sectors based on the table
 ASPECT_SECTOR_IMPACTS = {
-    'Conjunction': {
-        'Technology': 'Positive',
-        'Banking': 'Positive',
-        'FMCG': 'Positive',
-        'Energy': 'Positive',
-        'Automotive': 'Positive',
-        'Pharma': 'Positive',
-        'Metals': 'Positive',
-        'Infrastructure': 'Positive',
-        'Utilities': 'Neutral',
-        'Mining': 'Positive',
-        'Insurance': 'Positive',
-        'Finance': 'Positive',
-        'Paints': 'Positive',
-        'Retail': 'Positive',
-        'Jewelry': 'Positive',
-        'Cement': 'Neutral',
-        'Textiles': 'Positive',
-        'Agrochemicals': 'Positive',
-        'Telecom': 'Positive',
-        'Asset Management': 'Positive'
-    },
-    'Trine': {
-        'Technology': 'Positive',
-        'Banking': 'Positive',
-        'FMCG': 'Positive',
-        'Energy': 'Positive',
-        'Automotive': 'Positive',
-        'Pharma': 'Positive',
-        'Metals': 'Positive',
-        'Infrastructure': 'Positive',
-        'Utilities': 'Positive',
-        'Mining': 'Positive',
-        'Insurance': 'Positive',
-        'Finance': 'Positive',
-        'Paints': 'Positive',
-        'Retail': 'Positive',
-        'Jewelry': 'Positive',
-        'Cement': 'Positive',
-        'Textiles': 'Positive',
-        'Agrochemicals': 'Positive',
-        'Telecom': 'Positive',
-        'Asset Management': 'Positive'
-    },
-    'Sextile': {
-        'Technology': 'Positive',
-        'Banking': 'Positive',
-        'FMCG': 'Positive',
-        'Energy': 'Positive',
-        'Automotive': 'Positive',
-        'Pharma': 'Positive',
-        'Metals': 'Positive',
-        'Infrastructure': 'Positive',
-        'Utilities': 'Positive',
-        'Mining': 'Positive',
-        'Insurance': 'Positive',
-        'Finance': 'Positive',
-        'Paints': 'Positive',
-        'Retail': 'Positive',
-        'Jewelry': 'Positive',
-        'Cement': 'Positive',
-        'Textiles': 'Positive',
-        'Agrochemicals': 'Positive',
-        'Telecom': 'Positive',
-        'Asset Management': 'Positive'
-    },
-    'Opposition': {
-        'Technology': 'Negative',
-        'Banking': 'Negative',
-        'FMCG': 'Negative',
-        'Energy': 'Negative',
-        'Automotive': 'Negative',
-        'Pharma': 'Negative',
-        'Metals': 'Negative',
-        'Infrastructure': 'Negative',
-        'Utilities': 'Negative',
-        'Mining': 'Negative',
-        'Insurance': 'Negative',
-        'Finance': 'Negative',
-        'Paints': 'Negative',
-        'Retail': 'Negative',
-        'Jewelry': 'Negative',
-        'Cement': 'Negative',
-        'Textiles': 'Negative',
-        'Agrochemicals': 'Negative',
-        'Telecom': 'Negative',
-        'Asset Management': 'Negative'
-    },
     'Square': {
         'Technology': 'Negative',
         'Banking': 'Negative',
-        'FMCG': 'Negative',
-        'Energy': 'Negative',
+        'FMCG': 'Neutral',
+        'Pharma': 'Neutral',
+        'Energy': 'Neutral',
+        'Automotive': 'Neutral',
+        'Realty': 'Neutral',
+        'PSUs': 'Neutral',
+        'Midcaps': 'Neutral',
+        'Smallcaps': 'Neutral'
+    },
+    'Opposition': {
+        'Technology': 'Neutral',
+        'Banking': 'Neutral',
+        'FMCG': 'Neutral',
+        'Pharma': 'Neutral',
+        'Energy': 'Neutral',
         'Automotive': 'Negative',
-        'Pharma': 'Negative',
-        'Metals': 'Negative',
-        'Infrastructure': 'Negative',
-        'Utilities': 'Negative',
-        'Mining': 'Negative',
-        'Insurance': 'Negative',
-        'Finance': 'Negative',
-        'Paints': 'Negative',
-        'Retail': 'Negative',
-        'Jewelry': 'Negative',
-        'Cement': 'Negative',
-        'Textiles': 'Negative',
-        'Agrochemicals': 'Negative',
-        'Telecom': 'Negative',
-        'Asset Management': 'Negative'
+        'Realty': 'Negative',
+        'PSUs': 'Neutral',
+        'Midcaps': 'Neutral',
+        'Smallcaps': 'Neutral'
+    },
+    'Trine': {
+        'Technology': 'Neutral',
+        'Banking': 'Neutral',
+        'FMCG': 'Positive',
+        'Pharma': 'Positive',
+        'Energy': 'Neutral',
+        'Automotive': 'Neutral',
+        'Realty': 'Neutral',
+        'PSUs': 'Neutral',
+        'Midcaps': 'Neutral',
+        'Smallcaps': 'Neutral'
+    },
+    'Conjunction': {
+        'Technology': 'Neutral',
+        'Banking': 'Neutral',
+        'FMCG': 'Neutral',
+        'Pharma': 'Neutral',
+        'Energy': 'Positive',
+        'Automotive': 'Neutral',
+        'Realty': 'Neutral',
+        'PSUs': 'Neutral',
+        'Midcaps': 'Negative',
+        'Smallcaps': 'Neutral'
+    },
+    'Sextile': {
+        'Technology': 'Neutral',
+        'Banking': 'Neutral',
+        'FMCG': 'Neutral',
+        'Pharma': 'Neutral',
+        'Energy': 'Neutral',
+        'Automotive': 'Neutral',
+        'Realty': 'Neutral',
+        'PSUs': 'Positive',
+        'Midcaps': 'Neutral',
+        'Smallcaps': 'Negative'
     }
 }
 
@@ -297,13 +212,8 @@ def draw_planetary_wheel(ax, input_date, size=0.3):
 
 # --- GENERATE TODAY'S ASTROLOGICAL ASPECTS ---
 def generate_todays_aspects():
-    """Generate astrological aspects for today"""
-    today = datetime.now().date()
-    
-    # This is a simplified simulation - in a real app, you would use an ephemeris
-    # to calculate actual planetary positions and aspects
-    
-    # Base aspects (would be calculated based on actual planetary positions)
+    """Generate astrological aspects for today based on the provided table"""
+    # Use the exact data from the provided table
     base_aspects = [
         {"planets": "Mercury-Jupiter", "aspect_type": "Square", "impact": -0.7, "type": "bearish"},
         {"planets": "Venus-Saturn", "aspect_type": "Opposition", "impact": -0.8, "type": "bearish"},
@@ -323,6 +233,52 @@ def generate_todays_aspects():
         })
     
     return aspects
+
+# --- CREATE SUMMARY TABLE ---
+def create_summary_table(aspects):
+    """Create a summary table based on the astrological aspects"""
+    summary_data = {
+        'Aspect': [],
+        'Nifty/Bank Nifty': [],
+        'Bullish Sectors/Stocks': [],
+        'Bearish Sectors/Stocks': []
+    }
+    
+    for aspect in aspects:
+        planets = aspect["planets"]
+        aspect_type = aspect["aspect_type"]
+        
+        if planets == "Mercury-Jupiter" and aspect_type == "Square":
+            summary_data['Aspect'].append("Mercury-Jupiter (Square)")
+            summary_data['Nifty/Bank Nifty'].append("Volatile")
+            summary_data['Bullish Sectors/Stocks'].append("IT (TCS)")
+            summary_data['Bearish Sectors/Stocks'].append("Banking (ICICI Bank)")
+        
+        elif planets == "Venus-Saturn" and aspect_type == "Opposition":
+            summary_data['Aspect'].append("Venus-Saturn (Opposition)")
+            summary_data['Nifty/Bank Nifty'].append("Downside")
+            summary_data['Bullish Sectors/Stocks'].append("-")
+            summary_data['Bearish Sectors/Stocks'].append("Auto (Maruti), Realty (DLF)")
+        
+        elif planets == "Moon-Neptune" and aspect_type == "Trine":
+            summary_data['Aspect'].append("Moon-Neptune (Trine)")
+            summary_data['Nifty/Bank Nifty'].append("Mild Support")
+            summary_data['Bullish Sectors/Stocks'].append("FMCG (Nestlé), Pharma")
+            summary_data['Bearish Sectors/Stocks'].append("-")
+        
+        elif planets == "Mars-Uranus" and aspect_type == "Conjunction":
+            summary_data['Aspect'].append("Mars-Uranus (Conjunction)")
+            summary_data['Nifty/Bank Nifty'].append("Sharp Moves")
+            summary_data['Bullish Sectors/Stocks'].append("Energy (Reliance)")
+            summary_data['Bearish Sectors/Stocks'].append("Weak Midcaps")
+        
+        elif planets == "Sun-Pluto" and aspect_type == "Sextile":
+            summary_data['Aspect'].append("Sun-Pluto (Sextile)")
+            summary_data['Nifty/Bank Nifty'].append("Structural Shift")
+            summary_data['Bullish Sectors/Stocks'].append("PSUs (SBI)")
+            summary_data['Bearish Sectors/Stocks'].append("Overvalued Smallcaps")
+    
+    return pd.DataFrame(summary_data)
 
 # --- FILTER STOCKS BASED ON ASTROLOGICAL ASPECTS ---
 def filter_stocks_by_aspects(aspects, stock_database):
@@ -863,142 +819,52 @@ def analyze_aspects():
 
 # --- STREAMLIT APP ---
 def main():
-    st.title('🌟 Universal Astrological Trading Dashboard')
-    st.write('This interactive dashboard generates charts for any symbol based on astrological transits and aspects.')
+    st.title('🌟 Astrological Trading Dashboard')
+    st.write('This dashboard provides trading insights based on astrological aspects and planetary positions.')
     
     # Sidebar for inputs
-    st.sidebar.title('📊 Chart Configuration')
+    st.sidebar.title('📊 Dashboard Options')
     
-    # Symbol input
-    symbol = st.sidebar.text_input(
-        'Enter Symbol:',
-        value='NIFTY',
-        max_chars=10
-    ).upper()
-    
-    # Starting price input
-    starting_price = st.sidebar.number_input(
-        'Enter Starting Price:',
-        min_value=0.01,
-        value=24620.0,
-        step=1.0
+    # Dashboard section selection
+    dashboard_section = st.sidebar.selectbox(
+        'Choose a section:',
+        ['Summary Table', 'Stock Filter', 'Aspect Analysis', 'Intraday Chart', 'Monthly Chart']
     )
     
-    # Chart type selection
-    chart_type = st.sidebar.selectbox(
-        'Choose a chart to generate:',
-        ['Intraday Chart', 'Monthly Chart', 'Aspect Analysis', 'Stock Filter']
-    )
+    # Generate today's aspects
+    aspects = generate_todays_aspects()
     
-    if chart_type == 'Intraday Chart':
-        st.header(f'📈 {symbol} Intraday Chart')
-        st.write('Simulated intraday price movements based on astrological transits and aspects.')
+    if dashboard_section == 'Summary Table':
+        st.header('📋 Today\'s Astrological Aspects Summary')
+        st.write('Summary of market impact based on today\'s astrological aspects.')
         
-        # Date selector
-        selected_date = st.date_input(
-            'Select a date:',
-            value=datetime(2025, 8, 5).date(),
-            min_value=datetime(2020, 1, 1).date(),
-            max_value=datetime(2030, 12, 31).date()
-        )
-        
-        # Generate chart
-        fig = generate_intraday_chart(symbol, starting_price, selected_date)
-        st.pyplot(fig)
+        # Create and display summary table
+        summary_df = create_summary_table(aspects)
+        st.dataframe(summary_df)
         
         # Additional information
-        st.subheader('🔮 Astrological Insights')
-        st.info(f"""
-        **Key Astrological Events for {selected_date.strftime("%B %d, %Y")}:**
-        - **Mercury Retrograde**: Causes market volatility and unpredictable movements
-        - **Moon-Jupiter Trine**: Creates bullish sentiment and optimism
-        - **Moon-Saturn Square**: Triggers fear and selling pressure
-        - **Venus-Saturn Opposition**: Creates financial stress and risk aversion
+        st.subheader('🔮 Key Insights')
+        st.info("""
+        **Market Overview:**
+        - Mixed signals with both bullish and bearish aspects
+        - Technology sector may see volatility due to Mercury-Jupiter square
+        - Energy sector could benefit from Mars-Uranus conjunction
+        - Banking sector under pressure from Venus-Saturn opposition
+        - FMCG and Pharma sectors may receive mild support from Moon-Neptune trine
         
         **Trading Strategy:**
-        - Best time to buy: Around Moon-Jupiter trine (10:00 AM)
-        - Best time to sell: Before Moon-Saturn square (2:00 PM)
-        - Avoid trading during Mercury retrograde periods
+        - Consider buying Energy stocks like Reliance
+        - Avoid or sell Banking stocks like ICICI Bank
+        - Be cautious with Automotive and Realty stocks
+        - Monitor PSUs like SBI for potential opportunities
         """)
-        
-    elif chart_type == 'Monthly Chart':
-        st.header(f'📊 {symbol} Monthly Chart')
-        st.write('Simulated daily closing prices based on astrological transits and aspects.')
-        
-        # Month and year selectors
-        col1, col2 = st.columns(2)
-        with col1:
-            selected_month = st.selectbox(
-                'Select Month:',
-                range(1, 13),
-                format_func=lambda x: calendar.month_name[x],
-                index=7  # August
-            )
-        with col2:
-            selected_year = st.selectbox(
-                'Select Year:',
-                range(2020, 2031),
-                index=5  # 2025
-            )
-        
-        # Generate chart
-        fig = generate_monthly_chart(symbol, starting_price, selected_month, selected_year)
-        st.pyplot(fig)
-        
-        # Additional information
-        month_name = calendar.month_name[selected_month]
-        st.subheader(f'🌙 Monthly Astrological Summary - {month_name} {selected_year}')
-        st.info(f"""
-        **{month_name} {selected_year} Key Transits:**
-        - **Mercury Retrograde**: High volatility, avoid major decisions
-        - **Jupiter Square Saturn**: Major tension between optimism and restriction
-        - **Mercury Direct**: Clarity returns, good for new positions
-        - **New Moon**: Strong bullish close to the month
-        
-        **Market Phases:**
-        1. **Early {month_name}**: Bearish pressure with high volatility
-        2. **Mid {month_name}**: Stabilization and consolidation
-        3. **Late {month_name}**: Bullish surge with financial sector rally
-        """)
-        
-    elif chart_type == 'Aspect Analysis':
-        st.header('📋 Astrological Aspect Analysis')
-        st.write('Analysis of key astrological aspects and their impact on market prices.')
-        fig, df_aspects = analyze_aspects()
-        st.pyplot(fig)
-        
-        st.subheader('📊 Aspect Data Table')
-        st.dataframe(df_aspects)
-        
-        # Additional information
-        st.subheader('🔭 Understanding Astrological Aspects')
-        st.info("""
-        **Aspect Types:**
-        - **Conjunction (0°)**: Powerful, combining energies
-        - **Square (90°)**: Challenging, creates tension
-        - **Trine (120°)**: Harmonious, positive flow
-        - **Opposition (180°)**: Polarizing, requires balance
-        
-        **Planetary Influences:**
-        - **Jupiter**: Expansion, optimism, growth
-        - **Saturn**: Restriction, discipline, fear
-        - **Mercury**: Communication, logic, volatility
-        - **Venus**: Finances, relationships, value
-        - **Mars**: Action, energy, conflict
-        - **Moon**: Emotions, sentiment, cycles
-        """)
-        
-    elif chart_type == 'Stock Filter':
+    
+    elif dashboard_section == 'Stock Filter':
         st.header('🔍 Stock Filter Based on Today\'s Astrological Aspects')
         st.write('Filter stocks based on their expected performance according to today\'s planetary transits and aspects.')
         
-        # Generate today's aspects
-        today = datetime.now().date()
-        st.subheader(f'Today\'s Astrological Aspects - {today.strftime("%B %d, %Y")}')
-        
-        aspects = generate_todays_aspects()
-        
         # Display today's aspects
+        st.subheader(f'Today\'s Astrological Aspects - {datetime.now().strftime("%B %d, %Y")}')
         aspects_df = pd.DataFrame(aspects)
         aspects_df = aspects_df[['planets', 'aspect_type', 'type', 'impact']]
         aspects_df.columns = ['Planets', 'Aspect Type', 'Market Sentiment', 'Impact Strength']
@@ -1039,11 +905,10 @@ def main():
         
         st.pyplot(fig)
         
-        # Display filtered stocks with color highlighting
+        # Display filtered stocks
         st.subheader('📈 Bullish Stocks (Consider Buying)')
         if not filtered_stocks['bullish'].empty:
             bullish_df = filtered_stocks['bullish'][['Symbol', 'Sector', 'MarketCap', 'Impact Score']]
-            # Apply green highlighting to bullish stocks
             st.dataframe(bullish_df.style.applymap(lambda x: 'color: green' if isinstance(x, str) else '', subset=['Symbol']))
         else:
             st.info("No bullish stocks identified for today's aspects.")
@@ -1051,7 +916,6 @@ def main():
         st.subheader('📉 Bearish Stocks (Consider Selling or Avoiding)')
         if not filtered_stocks['bearish'].empty:
             bearish_df = filtered_stocks['bearish'][['Symbol', 'Sector', 'MarketCap', 'Impact Score']]
-            # Apply red highlighting to bearish stocks
             st.dataframe(bearish_df.style.applymap(lambda x: 'color: red' if isinstance(x, str) else '', subset=['Symbol']))
         else:
             st.info("No bearish stocks identified for today's aspects.")
@@ -1062,33 +926,141 @@ def main():
             st.dataframe(neutral_df)
         else:
             st.info("No neutral stocks identified for today's aspects.")
+    
+    elif dashboard_section == 'Aspect Analysis':
+        st.header('📋 Astrological Aspect Analysis')
+        st.write('Analysis of key astrological aspects and their impact on market prices.')
+        fig, df_aspects = analyze_aspects()
+        st.pyplot(fig)
+        
+        st.subheader('📊 Aspect Data Table')
+        st.dataframe(df_aspects)
         
         # Additional information
-        st.subheader('🔮 Trading Strategy Based on Today\'s Aspects')
+        st.subheader('🔭 Understanding Astrological Aspects')
+        st.info("""
+        **Aspect Types:**
+        - **Conjunction (0°)**: Powerful, combining energies
+        - **Square (90°)**: Challenging, creates tension
+        - **Trine (120°)**: Harmonious, positive flow
+        - **Opposition (180°)**: Polarizing, requires balance
+        - **Sextile (60°)**: Opportunistic, positive potential
         
-        # Get top bullish and bearish sectors
-        top_bullish_sectors = sector_impacts_df[sector_impacts_df['Sentiment'] == 'Bullish'].head(3)['Sector'].tolist()
-        top_bearish_sectors = sector_impacts_df[sector_impacts_df['Sentiment'] == 'Bearish'].head(3)['Sector'].tolist()
+        **Planetary Influences:**
+        - **Jupiter**: Expansion, optimism, growth
+        - **Saturn**: Restriction, discipline, fear
+        - **Mercury**: Communication, logic, volatility
+        - **Venus**: Finances, relationships, value
+        - **Mars**: Action, energy, conflict
+        - **Moon**: Emotions, sentiment, cycles
+        - **Neptune**: Dreams, intuition, confusion
+        - **Pluto**: Transformation, power, control
+        - **Uranus**: Innovation, sudden changes, rebellion
+        """)
+    
+    elif dashboard_section == 'Intraday Chart':
+        st.header('📈 Intraday Chart')
+        st.write('Simulated intraday price movements based on astrological transits and aspects.')
         
-        strategy_info = f"""
-        **Today's Market Outlook:** {'Bullish' if sum(filtered_stocks['sector_impacts'].values()) > 0 else 'Bearish'}
+        # Symbol input
+        symbol = st.text_input(
+            'Enter Symbol:',
+            value='NIFTY',
+            max_chars=10
+        ).upper()
         
-        **Top Bullish Sectors:** {', '.join(top_bullish_sectors) if top_bullish_sectors else 'None'}
+        # Starting price input
+        starting_price = st.number_input(
+            'Enter Starting Price:',
+            min_value=0.01,
+            value=24620.0,
+            step=1.0
+        )
         
-        **Top Bearish Sectors:** {', '.join(top_bearish_sectors) if top_bearish_sectors else 'None'}
+        # Date selector
+        selected_date = st.date_input(
+            'Select a date:',
+            value=datetime(2025, 8, 5).date(),
+            min_value=datetime(2020, 1, 1).date(),
+            max_value=datetime(2030, 12, 31).date()
+        )
         
-        **Recommended Actions:**
-        - **Buy**: Stocks from bullish sectors with high impact scores
-        - **Sell/Avoid**: Stocks from bearish sectors with high impact scores
-        - **Hold**: Stocks from neutral sectors or with low impact scores
+        # Generate chart
+        fig = generate_intraday_chart(symbol, starting_price, selected_date)
+        st.pyplot(fig)
         
-        **Key Astrological Events Today:**
-        """
+        # Additional information
+        st.subheader('🔮 Astrological Insights')
+        st.info(f"""
+        **Key Astrological Events for {selected_date.strftime("%B %d, %Y")}:**
+        - **Mercury-Jupiter Square**: Causes market volatility and unpredictable movements
+        - **Venus-Saturn Opposition**: Creates financial stress and risk aversion
+        - **Moon-Neptune Trine**: Provides mild support to defensive sectors
+        - **Mars-Uranus Conjunction**: Leads to sharp moves in energy sector
+        - **Sun-Pluto Sextile**: Brings structural shifts in PSUs
         
-        for aspect in aspects:
-            strategy_info += f"- {aspect['planets']} {aspect['aspect_type']}: {aspect['type'].capitalize()} with impact strength {aspect['impact']}\n"
+        **Trading Strategy:**
+        - Best time to buy: During Moon-Neptune trine influence
+        - Best time to sell: Before Venus-Saturn opposition peaks
+        - Monitor Energy stocks for sharp movements
+        - Consider PSUs for structural shifts
+        """)
+    
+    elif dashboard_section == 'Monthly Chart':
+        st.header('📊 Monthly Chart')
+        st.write('Simulated daily closing prices based on astrological transits and aspects.')
         
-        st.info(strategy_info)
+        # Symbol input
+        symbol = st.text_input(
+            'Enter Symbol:',
+            value='NIFTY',
+            max_chars=10
+        ).upper()
+        
+        # Starting price input
+        starting_price = st.number_input(
+            'Enter Starting Price:',
+            min_value=0.01,
+            value=24620.0,
+            step=1.0
+        )
+        
+        # Month and year selectors
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_month = st.selectbox(
+                'Select Month:',
+                range(1, 13),
+                format_func=lambda x: calendar.month_name[x],
+                index=7  # August
+            )
+        with col2:
+            selected_year = st.selectbox(
+                'Select Year:',
+                range(2020, 2031),
+                index=5  # 2025
+            )
+        
+        # Generate chart
+        fig = generate_monthly_chart(symbol, starting_price, selected_month, selected_year)
+        st.pyplot(fig)
+        
+        # Additional information
+        month_name = calendar.month_name[selected_month]
+        st.subheader(f'🌙 Monthly Astrological Summary - {month_name} {selected_year}')
+        st.info(f"""
+        **{month_name} {selected_year} Key Transits:**
+        - **Mercury-Jupiter Square**: Volatility in technology and banking sectors
+        - **Venus-Saturn Opposition**: Pressure on automotive and realty sectors
+        - **Moon-Neptune Trine**: Support for FMCG and pharma sectors
+        - **Mars-Uranus Conjunction**: Sharp movements in energy sector
+        - **Sun-Pluto Sextile**: Structural shifts in PSUs
+        
+        **Market Phases:**
+        1. **Early {month_name}**: Volatility with pressure on banking and automotive
+        2. **Mid {month_name}**: Support for defensive sectors, energy volatility
+        3. **Late {month_name}**: Structural shifts in PSUs, market stabilization
+        """)
 
 if __name__ == "__main__":
     main()
