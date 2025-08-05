@@ -21,7 +21,7 @@ except OSError:
         sns.set_style("darkgrid")
 
 # --- STOCK DATABASE ---
-# Create a more robust stock database
+# Create a more robust stock database with consistent array lengths
 stock_data = {
     'Symbol': [
         'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'HINDUNILVR', 'ICICIBANK', 'SBIN', 'BHARTIARTL',
