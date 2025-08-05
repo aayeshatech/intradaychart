@@ -9,6 +9,7 @@ from matplotlib.patches import Circle, Wedge
 from matplotlib.collections import PatchCollection
 import matplotlib.patches as mpatches
 import calendar
+
 # Set compatible style with error handling
 try:
     plt.style.use('seaborn-v0_8-darkgrid')
@@ -18,6 +19,7 @@ except OSError:
     except OSError:
         plt.style.use('default')
         sns.set_style("darkgrid")
+
 # --- STOCK DATABASE ---
 # Create a more robust stock database with consistent array lengths
 stock_data = {
