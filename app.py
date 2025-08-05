@@ -49,7 +49,7 @@ STOCK_DATABASE = pd.DataFrame({
         'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
         'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
         'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
-        'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
+        'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
         'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
         'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large'
     ]
