@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import seaborn as sns
 from matplotlib.patches import Circle, Wedge
 from matplotlib.collections import PatchCollection
@@ -26,7 +26,7 @@ def draw_planetary_wheel(ax, date, size=0.3):
     # Planet positions for any date (simplified calculation)
     # In a real app, you would use an ephemeris library for accurate positions
     base_date = datetime(2025, 8, 1)
-    days_diff = (date - base_date).days
+    days_diff = (date - base_date.date()).days if isinstance(date, datetime) else (date - base_date.date()).days
     
     # Base positions for August 2025 (in degrees)
     base_positions = {
@@ -123,7 +123,7 @@ def generate_astrological_events(date, event_type='intraday'):
         
         # Create events for the selected date
         events = []
-        start_time = date.replace(hour=9, minute=15)
+        start_time = datetime.combine(date, datetime.min.time()).replace(hour=9, minute=15)
         for event in base_events:
             event_time = start_time + timedelta(minutes=event["time_offset"])
             events.append({
@@ -152,8 +152,13 @@ def generate_astrological_events(date, event_type='intraday'):
         ]
         
         # Get the number of days in the selected month
-        year = date.year
-        month = date.month
+        if isinstance(date, datetime):
+            year = date.year
+            month = date.month
+        else:
+            year = date.year
+            month = date.month
+            
         days_in_month = calendar.monthrange(year, month)[1]
         
         # Create events for the selected month
@@ -174,6 +179,10 @@ def generate_astrological_events(date, event_type='intraday'):
 
 # --- ENHANCED INTRADAY CHART ---
 def generate_intraday_chart(symbol, starting_price, selected_date):
+    # Convert date to datetime if it's not already
+    if isinstance(selected_date, date) and not isinstance(selected_date, datetime):
+        selected_date = datetime.combine(selected_date, datetime.min.time())
+    
     # Create time range from 9:15 AM to 3:30 PM with 15-minute intervals
     start_time = selected_date.replace(hour=9, minute=15)
     end_time = selected_date.replace(hour=15, minute=30)
