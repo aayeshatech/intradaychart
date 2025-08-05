@@ -1,3 +1,4 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -94,11 +95,7 @@ def generate_intraday_chart():
                 fontsize=12, fontweight='bold',
                 bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=2))
     
-    # Save without tight_layout to avoid warning
-    plt.savefig('nifty_intraday_aug5_2025.png', dpi=300, bbox_inches='tight')
-    plt.show()
-    
-    return df_intraday
+    return fig
 
 # --- MONTHLY CHART FOR AUGUST 2025 ---
 def generate_monthly_chart():
@@ -186,11 +183,7 @@ def generate_monthly_chart():
                 fontsize=12, fontweight='bold',
                 bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', pad=2))
     
-    # Save without tight_layout to avoid warning
-    plt.savefig('nifty_monthly_aug2025.png', dpi=300, bbox_inches='tight')
-    plt.show()
-    
-    return df_monthly
+    return fig
 
 # --- ASTROLOGICAL ASPECT ANALYSIS ---
 def analyze_aspects():
@@ -250,12 +243,6 @@ def analyze_aspects():
     
     df_aspects = pd.DataFrame(aspects_data)
     
-    # Display the table
-    print("ASTROLOGICAL ASPECTS AND MARKET IMPACT - AUGUST 2025")
-    print("="*80)
-    print(df_aspects.to_string(index=False))
-    print("\n")
-    
     # Create a bar chart of price changes with adjusted layout
     fig, ax = plt.subplots(figsize=(14, 8))
     plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.3)  # Adjust margins
@@ -291,20 +278,40 @@ def analyze_aspects():
                     textcoords="offset points",
                     ha='center', va='bottom')
     
-    # Save without tight_layout to avoid warning
-    plt.savefig('aspect_impact_analysis.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    return fig, df_aspects
 
-# --- MAIN EXECUTION ---
+# --- STREAMLIT APP ---
+def main():
+    st.title('Nifty Astrological Analysis')
+    st.write('This app generates Nifty charts based on astrological transits and aspects.')
+    
+    # Sidebar for chart selection
+    st.sidebar.title('Select Chart Type')
+    chart_type = st.sidebar.selectbox(
+        'Choose a chart to generate:',
+        ['Intraday Chart (Aug 5, 2025)', 'Monthly Chart (Aug 2025)', 'Aspect Analysis']
+    )
+    
+    if chart_type == 'Intraday Chart (Aug 5, 2025)':
+        st.header('Nifty Intraday Chart - August 5, 2025')
+        st.write('Simulated intraday price movements based on astrological transits and aspects.')
+        fig = generate_intraday_chart()
+        st.pyplot(fig)
+        
+    elif chart_type == 'Monthly Chart (Aug 2025)':
+        st.header('Nifty Monthly Chart - August 2025')
+        st.write('Simulated daily closing prices based on astrological transits and aspects.')
+        fig = generate_monthly_chart()
+        st.pyplot(fig)
+        
+    elif chart_type == 'Aspect Analysis':
+        st.header('Astrological Aspect Analysis')
+        st.write('Analysis of key astrological aspects and their impact on Nifty prices.')
+        fig, df_aspects = analyze_aspects()
+        st.pyplot(fig)
+        
+        st.subheader('Aspect Data')
+        st.dataframe(df_aspects)
+
 if __name__ == "__main__":
-    print("Generating Nifty Intraday Chart for August 5, 2025...")
-    intraday_data = generate_intraday_chart()
-    
-    print("\nGenerating Nifty Monthly Chart for August 2025...")
-    monthly_data = generate_monthly_chart()
-    
-    print("\nAnalyzing Astrological Aspects Impact...")
-    analyze_aspects()
-    
-    print("\nChart generation complete!")
-    print("Files saved: nifty_intraday_aug5_2025.png, nifty_monthly_aug2025.png, aspect_impact_analysis.png")
+    main()
