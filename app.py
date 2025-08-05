@@ -21,8 +21,8 @@ except OSError:
         sns.set_style("darkgrid")
 
 # --- STOCK DATABASE ---
-# Sample stock list with sectors (in a real app, this would come from a database or API)
-STOCK_DATABASE = pd.DataFrame({
+# Create a more robust stock database
+stock_data = {
     'Symbol': [
         'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'HINDUNILVR', 'ICICIBANK', 'SBIN', 'BHARTIARTL',
         'KOTAKBANK', 'AXISBANK', 'ITC', 'ASIANPAINT', 'DMART', 'BAJFINANCE', 'MARUTI',
@@ -53,7 +53,16 @@ STOCK_DATABASE = pd.DataFrame({
         'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large',
         'Large', 'Large', 'Large', 'Large', 'Large', 'Large', 'Large'
     ]
-})
+}
+
+# Verify all arrays have the same length
+array_lengths = {key: len(value) for key, value in stock_data.items()}
+if len(set(array_lengths.values())) > 1:
+    st.error(f"Arrays have different lengths: {array_lengths}")
+    st.stop()
+
+# Create the DataFrame
+STOCK_DATABASE = pd.DataFrame(stock_data)
 
 # --- SECTOR-PLANETARY MAPPINGS ---
 # Define which sectors are influenced by which planets
