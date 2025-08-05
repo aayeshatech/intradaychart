@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date as date_class
 import seaborn as sns
 from matplotlib.patches import Circle, Wedge
 from matplotlib.collections import PatchCollection
@@ -21,17 +21,17 @@ except OSError:
         sns.set_style("darkgrid")
 
 # --- PLANETARY POSITION VISUALIZATION ---
-def draw_planetary_wheel(ax, date, size=0.3):
+def draw_planetary_wheel(ax, input_date, size=0.3):
     """Draw a simplified astrological wheel showing planetary positions"""
     # Planet positions for any date (simplified calculation)
     # In a real app, you would use an ephemeris library for accurate positions
     base_date = datetime(2025, 8, 1)
     
     # Ensure date is a datetime object for consistent comparison
-    if isinstance(date, date) and not isinstance(date, datetime):
-        date_obj = datetime.combine(date, datetime.min.time())
+    if isinstance(input_date, date_class) and not isinstance(input_date, datetime):
+        date_obj = datetime.combine(input_date, datetime.min.time())
     else:
-        date_obj = date
+        date_obj = input_date
     
     days_diff = (date_obj.date() - base_date.date()).days
     
@@ -111,7 +111,7 @@ def draw_planetary_wheel(ax, date, size=0.3):
     ax.set_title(f'Planetary Positions\n{date_obj.strftime("%b %d, %Y")}', fontsize=8)
 
 # --- GENERATE ASTROLOGICAL EVENTS ---
-def generate_astrological_events(date, event_type='intraday'):
+def generate_astrological_events(input_date, event_type='intraday'):
     """Generate astrological events for any given date"""
     # This is a simplified simulation - in a real app, you would use an ephemeris
     # to calculate actual planetary positions and aspects
@@ -131,10 +131,10 @@ def generate_astrological_events(date, event_type='intraday'):
         # Create events for the selected date
         events = []
         # Ensure we have a datetime object
-        if isinstance(date, date) and not isinstance(date, datetime):
-            dt = datetime.combine(date, datetime.min.time())
+        if isinstance(input_date, date_class) and not isinstance(input_date, datetime):
+            dt = datetime.combine(input_date, datetime.min.time())
         else:
-            dt = date
+            dt = input_date
             
         start_time = dt.replace(hour=9, minute=15)
         for event in base_events:
@@ -165,12 +165,12 @@ def generate_astrological_events(date, event_type='intraday'):
         ]
         
         # Get the number of days in the selected month
-        if isinstance(date, datetime):
-            year = date.year
-            month = date.month
+        if isinstance(input_date, datetime):
+            year = input_date.year
+            month = input_date.month
         else:
-            year = date.year
-            month = date.month
+            year = input_date.year
+            month = input_date.month
             
         days_in_month = calendar.monthrange(year, month)[1]
         
@@ -193,7 +193,7 @@ def generate_astrological_events(date, event_type='intraday'):
 # --- ENHANCED INTRADAY CHART ---
 def generate_intraday_chart(symbol, starting_price, selected_date):
     # Convert date to datetime if it's not already
-    if isinstance(selected_date, date) and not isinstance(selected_date, datetime):
+    if isinstance(selected_date, date_class) and not isinstance(selected_date, datetime):
         selected_date = datetime.combine(selected_date, datetime.min.time())
     
     # Create time range from 9:15 AM to 3:30 PM with 15-minute intervals
