@@ -26,7 +26,14 @@ def draw_planetary_wheel(ax, date, size=0.3):
     # Planet positions for any date (simplified calculation)
     # In a real app, you would use an ephemeris library for accurate positions
     base_date = datetime(2025, 8, 1)
-    days_diff = (date - base_date.date()).days if isinstance(date, datetime) else (date - base_date.date()).days
+    
+    # Ensure date is a datetime object for consistent comparison
+    if isinstance(date, date) and not isinstance(date, datetime):
+        date_obj = datetime.combine(date, datetime.min.time())
+    else:
+        date_obj = date
+    
+    days_diff = (date_obj.date() - base_date.date()).days
     
     # Base positions for August 2025 (in degrees)
     base_positions = {
@@ -101,7 +108,7 @@ def draw_planetary_wheel(ax, date, size=0.3):
     ax.set_ylim(-size, size)
     ax.set_aspect('equal')
     ax.axis('off')
-    ax.set_title(f'Planetary Positions\n{date.strftime("%b %d, %Y")}', fontsize=8)
+    ax.set_title(f'Planetary Positions\n{date_obj.strftime("%b %d, %Y")}', fontsize=8)
 
 # --- GENERATE ASTROLOGICAL EVENTS ---
 def generate_astrological_events(date, event_type='intraday'):
@@ -123,7 +130,13 @@ def generate_astrological_events(date, event_type='intraday'):
         
         # Create events for the selected date
         events = []
-        start_time = datetime.combine(date, datetime.min.time()).replace(hour=9, minute=15)
+        # Ensure we have a datetime object
+        if isinstance(date, date) and not isinstance(date, datetime):
+            dt = datetime.combine(date, datetime.min.time())
+        else:
+            dt = date
+            
+        start_time = dt.replace(hour=9, minute=15)
         for event in base_events:
             event_time = start_time + timedelta(minutes=event["time_offset"])
             events.append({
